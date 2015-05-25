@@ -70,9 +70,9 @@ object Exs extends App {
     def get(): T = state.synchronized {
       state match {
         case None => throw new IllegalArgumentException()
-        case Some(x) => 
+        case Some(x) =>
           val tmp: T = x
-          state = None
+          state = None // if state.notify() was called afterwards, an IllegalMonitorStateExc would be thrown as the current thread does not own the object monitor anymore; it was lost on assigning None to state
           tmp
       }
     }
@@ -91,25 +91,65 @@ object Exs extends App {
     def nonEmpty: Boolean = !isEmpty
   }
 
-  val sv2 = new SyncVar2[Int]
-  val tprod = Thread.thread {
-    sv2.synchronized {
-      for (i <- 0 until 15) {
-        while (sv2.nonEmpty) sv2.wait()
-        sv2.put(i)
-        sv2.notify()
+//  val sv2 = new SyncVar2[Int]
+//  val tprod = Thread.thread {
+//    sv2.synchronized {
+//      for (i <- 0 until 15) {
+//        while (sv2.nonEmpty) sv2.wait()
+//        sv2.put(i)
+//        sv2.notify()
+//      }
+//    }
+//  }
+//  val tcons = Thread.thread {
+//    @tailrec
+//    def go(): Unit = {
+//      var get: Int = 0
+//      sv2.synchronized {
+//        while (sv2.isEmpty) sv2.wait()
+//        get = sv2.get()
+//        sv2.notify()
+//      }
+//      println(get)
+//      if (get < 14) go()
+//    }
+//    go()
+//  }
+
+  // 5
+  // the exs before are not the best coding as they synchronize at the state var and at the SyncVar
+  class SyncVar3[T] {
+    private val lock = new AnyRef
+    var state: Option[T] = None
+    final def getWait(): T = lock.synchronized {
+      state match {
+        case Some(x) =>
+          val tmp: T = x
+          state = None
+          lock.notify()
+          tmp
+        case None => lock.wait(); getWait()
+      }
+    }
+    final def putWait(x: T): Unit = lock.synchronized {
+      state match {
+        case None => state = Some(x); lock.notify()
+        case Some(v) => lock.wait(); putWait(v)
       }
     }
   }
+
+  val sv2 = new SyncVar3[Int]
+  val tprod = Thread.thread {
+      for (i <- 0 until 15) {
+        sv2.putWait(i)
+      }
+    }
+
   val tcons = Thread.thread {
     @tailrec
     def go(): Unit = {
-      var get: Int = 0
-      sv2.synchronized {
-        while (sv2.isEmpty) sv2.wait()
-        get = sv2.get()
-        sv2.notify()
-      }
+      val get: Int = sv2.getWait()
       println(get)
       if (get < 14) go()
     }
