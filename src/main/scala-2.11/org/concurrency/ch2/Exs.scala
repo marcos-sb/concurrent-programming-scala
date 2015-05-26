@@ -1,6 +1,7 @@
 package org.concurrency.ch2
 
 import scala.annotation.tailrec
+import scala.collection.mutable
 
 object Exs extends App {
   // 1
@@ -139,20 +140,49 @@ object Exs extends App {
     }
   }
 
-  val sv2 = new SyncVar3[Int]
-  val tprod = Thread.thread {
-      for (i <- 0 until 15) {
-        sv2.putWait(i)
-      }
+  //  val sv2 = new SyncVar3[Int]
+  //  val tprod = Thread.thread {
+  //      for (i <- 0 until 15) {
+  //        sv2.putWait(i)
+  //      }
+  //    }
+  //
+  //  val tcons = Thread.thread {
+  //    @tailrec
+  //    def go(): Unit = {
+  //      val get: Int = sv2.getWait()
+  //      println(get)
+  //      if (get < 14) go()
+  //    }
+  //    go()
+  //  }
+
+  // 6
+  class SyncQueue[T](val n:Int) {
+    val q: mutable.Queue[T] = new mutable.Queue()
+
+    final def getWait(): T = q.synchronized {
+      while(q.isEmpty) q.wait()
+      val v = q.dequeue()
+      q.notify()
+      v
     }
 
-  val tcons = Thread.thread {
-    @tailrec
-    def go(): Unit = {
-      val get: Int = sv2.getWait()
-      println(get)
-      if (get < 14) go()
+    final def putWait(el: T) = q.synchronized {
+      while(n < q.size) q.wait()
+      q += el
+      q.notify()
     }
-    go()
   }
+
+//  val sq = new SyncQueue[Int](3)
+//  val t1 = Thread.thread {
+//    for(i <- 0 until 15) sq.putWait(i)
+//  }
+//  val t2 = Thread.thread {
+//    var v:Int = sq.getWait()
+//    while(v < 14) {
+//      println(v); v = sq.getWait()
+//    }
+//  }
 }
