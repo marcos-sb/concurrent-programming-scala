@@ -185,4 +185,32 @@ object Exs extends App {
 //      println(v); v = sq.getWait()
 //    }
 //  }
+
+  // 7
+  class Account(val name:String, var bal:Int) {
+    override def equals(other: Any):Boolean = other match {
+      case that:Account => this.name == that.name
+      case _ => false
+    }
+    override def hashCode = name.hashCode
+  }
+  private def send(src: Account, dst: Account, quantity:Int): Unit = {
+    Thread.thread {
+      src.synchronized {
+        dst.synchronized {
+          src.bal -= quantity
+          dst.bal += quantity
+        }
+      }
+    }
+  }
+  // this code supposes target is not in accounts
+  def sendAll(accounts:collection.immutable.Set[Account], target:Account): Unit = {
+    if(!accounts.contains(target))
+      for(acc <- accounts) send(acc, target, acc.bal)
+  }
+
+//  val dst = new Account("target", 0)
+//  sendAll((for(i <- 10 until 20) yield new Account("src", i)).toSet, dst)
+//  println(dst.bal)
 }
