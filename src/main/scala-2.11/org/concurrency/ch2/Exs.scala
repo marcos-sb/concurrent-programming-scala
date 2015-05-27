@@ -213,4 +213,37 @@ object Exs extends App {
 //  val dst = new Account("target", 0)
 //  sendAll((for(i <- 10 until 20) yield new Account("src", i)).toSet, dst)
 //  println(dst.bal)
+
+  // 8
+  class PriorityTaskPool {
+    val pq: mutable.PriorityQueue[(Int, () => Unit)] = new mutable.PriorityQueue()(Ordering.by(t2 => -t2._1))
+    val worker = new java.lang.Thread {
+      def poll() = pq.synchronized {
+        while(pq.isEmpty) pq.wait()
+//        java.lang.Thread.sleep(500)
+        pq.dequeue()
+      }
+      override def run() = {
+        var task = poll()
+        while(task._1 != -1) {
+          task._2()
+          task = poll()
+        }
+      }
+    }
+    worker.start()
+    def asynchronous(priority:Int)(task: => Unit): Unit = pq.synchronized {
+      pq.enqueue(priority -> (() => task))
+      pq.notify()
+    }
+  }
+
+//  val ptp = new PriorityTaskPool()
+//  ptp.asynchronous(3)(println(3))
+//  ptp.asynchronous(2)(println(2))
+//  ptp.asynchronous(1)(println(1))
+//  ptp.asynchronous(1)(println(1))
+//  ptp.asynchronous(2)(println(2))
+//  ptp.asynchronous(3)(println(3))
+//  ptp.asynchronous(-1)(println(-1))
 }
