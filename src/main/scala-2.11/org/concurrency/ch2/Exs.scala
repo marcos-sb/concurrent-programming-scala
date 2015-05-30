@@ -214,36 +214,45 @@ object Exs extends App {
 //  sendAll((for(i <- 10 until 20) yield new Account("src", i)).toSet, dst)
 //  println(dst.bal)
 
-  // 8
-  class PriorityTaskPool {
+  // 8 9 10
+  class PriorityTaskPool(p:Int, important:Int) {
     val pq: mutable.PriorityQueue[(Int, () => Unit)] = new mutable.PriorityQueue()(Ordering.by(t2 => -t2._1))
-    val worker = new java.lang.Thread {
+    @volatile var terminated = false
+    val workers = for(_ <- 0 until p) yield new java.lang.Thread {
       def poll() = pq.synchronized {
-        while(pq.isEmpty) pq.wait()
-//        java.lang.Thread.sleep(500)
-        pq.dequeue()
-      }
-      override def run() = {
-        var task = poll()
-        while(task._1 != -1) {
-          task._2()
-          task = poll()
+        while(pq.isEmpty && !terminated) pq.wait()
+        println(this.getName)
+        pq.headOption match {
+          case Some(task) if !terminated || task._1 < important => Some(pq.dequeue())
+          case _ => None
         }
       }
+      @tailrec
+      override def run() = poll() match {
+        case Some(task) => task._2(); run()
+        case None =>
+      }
     }
-    worker.start()
+    def go(): Unit = workers.foreach(_.start())
     def asynchronous(priority:Int)(task: => Unit): Unit = pq.synchronized {
       pq.enqueue(priority -> (() => task))
       pq.notify()
     }
+    def shutdown(): Unit = {
+      terminated = true
+      pq.synchronized { pq.notify() }
+    }
   }
 
-//  val ptp = new PriorityTaskPool()
-//  ptp.asynchronous(3)(println(3))
-//  ptp.asynchronous(2)(println(2))
-//  ptp.asynchronous(1)(println(1))
-//  ptp.asynchronous(1)(println(1))
-//  ptp.asynchronous(2)(println(2))
-//  ptp.asynchronous(3)(println(3))
-//  ptp.asynchronous(-1)(println(-1))
+  val ptp = new PriorityTaskPool(2,2)
+  ptp.asynchronous(3)(println(3))
+  ptp.asynchronous(2)(println(2))
+  ptp.asynchronous(1)(println(1))
+  ptp.asynchronous(1)(println(1))
+  ptp.asynchronous(2)(println(2))
+  ptp.asynchronous(3)(println(3))
+  ptp.asynchronous(-1)(println(-1))
+  ptp.go()
+  ptp.shutdown()
+
 }
