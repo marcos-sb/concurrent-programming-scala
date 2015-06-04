@@ -25,6 +25,4 @@ object PureLazyCellApp extends App {
   println(_lazy())
   _lazy()
   val _lazy2 = new PureLazyCell[Int]({3/3})
-//  lazy val _lazy3 = println(3/4)
-//  _lazy3; _lazy3
 }
