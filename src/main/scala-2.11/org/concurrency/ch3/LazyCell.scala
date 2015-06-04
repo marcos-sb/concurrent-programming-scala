@@ -11,7 +11,7 @@ class LazyCell[T](initialization: => T) {
     }
 }
 
-object LazyCellRun extends App {
+object LazyCellApp extends App {
   val _lazy = new LazyCell({println(1)})
   _lazy()
   _lazy()
