@@ -23,7 +23,7 @@ object FFutureApp extends App {
 
   Future {
     6
-  }.exists(_ > 5), //true iif future completes before exists (most of the times)
+  }.exists(_ > 5), //true iif the future completes before exists (most of the times)
 
   Future {
     Thread.sleep(2000)
