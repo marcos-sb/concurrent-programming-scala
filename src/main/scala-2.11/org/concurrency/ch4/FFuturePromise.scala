@@ -32,4 +32,6 @@ object FFuturePromise extends App {
   )
 
   l foreach {_ foreach println}
+
+  Thread.sleep(1000)
 }
