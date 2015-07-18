@@ -70,10 +70,10 @@ class ParStringCombiner extends Combiner[Char, ParString] {
     //   (acc1, acc2) => acc1.append(acc2)
     // ).toString())
 
-    // // try #4 sequential result
-    // val rsb = new StringBuilder
-    // for(sb <- chunks) rsb.append(sb)
-    // new ParString(rsb.toString())
+    // try #4 sequential result
+    val rsb = new StringBuilder
+    for(sb <- chunks) rsb.append(sb)
+    new ParString(rsb.toString())
   }
 }
 
