@@ -33,4 +33,6 @@ class ParString (val str: String) extends immutable.ParSeq[Char] {
   def length = str.length
   def splitter = new ParStringSplitter(str, 0, str.length)
   def seq = new collection.immutable.WrappedString(str)
+  override def newCombiner = new ParStringCombiner
+  override def toString() = str
 }
