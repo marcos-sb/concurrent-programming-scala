@@ -2,8 +2,8 @@ package org.concurrency.ch6
 
 import rx.lang.scala.Observable
 
-class Signal[T](val ob: Observable[T]) {
-  var v: T = _
+class Signal[T] (protected val ob: Observable[T]) {
+  private var v: T = _
   ob.subscribe(v => this.v = v)
 
   def apply(): T = v
