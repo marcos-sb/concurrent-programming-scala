@@ -6,14 +6,7 @@ import scala.concurrent.duration._
 object ThreadObservableApp extends App {
 
   def observeThread(t:Thread, d:Duration = 1.second): Observable[Thread] = {
-    Observable(subscriber => {
-      Observable.interval(d).subscribe(_ => {
-        if(t.isAlive) {
-          subscriber.onNext(t)
-          subscriber.onCompleted()
-        }
-      })
-    })
+    Observable.interval(d).filter(_ => t.isAlive).map(_ => t).first
   }
 
   val t = new Thread {
@@ -25,6 +18,7 @@ object ThreadObservableApp extends App {
 
   observeThread(t, 0.5.second).subscribe(t => println(s"${t.getName} started"))
 
+  Thread.sleep(1000)
   t.start()
   Thread.sleep(3000)
 }
