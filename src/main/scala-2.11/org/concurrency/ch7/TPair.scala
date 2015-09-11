@@ -32,11 +32,11 @@ object TPairApp extends App {
   atomic {
     implicit tx => {
       val p = new TPair("1", 1)
-      println(s"(${p.first},${p.second})")
+      println(p)
 
       p.first = "2"
       p.second = 2
-      println(s"(${p.first},${p.second})")
+      println(p)
 
       //compile error
 //      println({
