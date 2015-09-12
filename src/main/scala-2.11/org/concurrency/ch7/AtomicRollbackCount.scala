@@ -3,8 +3,11 @@ package org.concurrency.ch7
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.stm._
 import scala.concurrent.{Future, blocking}
+=======
+import scala.concurrent.{Future, blocking}
+import scala.concurrent.stm._
+>>>>>>> origin/master
 
 object AtomicRollbackCount {
   def count[T](block: InTxn => T): (T, Int) = {
@@ -44,6 +47,11 @@ object AtomicRollbackCountApp extends App {
       }
     }
 
+<<<<<<< HEAD
+=======
+    Thread.sleep(1000)
+
+>>>>>>> origin/master
     atomic {
       implicit tx => {
         mv2.put(true)
