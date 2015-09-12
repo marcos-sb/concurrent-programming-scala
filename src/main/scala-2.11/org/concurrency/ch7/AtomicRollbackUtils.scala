@@ -6,8 +6,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.stm._
 import scala.concurrent.{Future, blocking}
 
-object AtomicRollbackCount {
-  def count[T](block: InTxn => T): (T, Int) = {
+object AtomicRollbackUtils {
+  def rollbackCount[T](block: InTxn => T): (T, Int) = {
     val count = new AtomicInteger(-1)
     atomic {
       implicit tx => {
@@ -16,9 +16,19 @@ object AtomicRollbackCount {
       }
     }
   }
+
+  def rollBackWithRetryMax[T](n: Int)(block: InTxn => T): T = {
+    val count = new AtomicInteger(-1)
+    atomic {
+      implicit tx => {
+        if (count.incrementAndGet() < n) block(tx)
+        else sys.error("Max. retries reached for Tx.")
+      }
+    }
+  }
 }
 
-object AtomicRollbackCountApp extends App {
+object AtomicRollbackUtilsApp extends App {
 
   val mv1 = new MVar[Boolean]()
   val mv2 = new MVar[Boolean]()
@@ -31,7 +41,7 @@ object AtomicRollbackCountApp extends App {
 
   Future {
     blocking {
-      println(s"${AtomicRollbackCount.count(block)}")
+      println(s"${AtomicRollbackUtils.rollbackCount(block)}")
     }
   }
 
@@ -43,6 +53,8 @@ object AtomicRollbackCountApp extends App {
         mv1.put(true)
       }
     }
+
+    Thread.sleep(1000)
 
     atomic {
       implicit tx => {
