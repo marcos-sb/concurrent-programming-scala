@@ -57,8 +57,8 @@ object AccountsApp extends App {
 }
 
 /**
-  * Kill may be considered a regular message with high priority, i.e. it becomes the head of the mailbox
-  * of any Actor as soon as it is received with no preemtion over the currently executing message handler. The Kill
+  * Kill may be considered a regular message with really high priority as it becomes the head of the mailbox
+  * of any Actor as soon as it is received, with no preemtion of the currently executing message handler. The Kill
   * message causes the recipient Actor to raise an ActorKilledException, which by default restarts the Actor
   * with no message loss on the mailbox.
   * With this in mind, it is easy to see why receiving a Kill message at any time during execution won't impact the
