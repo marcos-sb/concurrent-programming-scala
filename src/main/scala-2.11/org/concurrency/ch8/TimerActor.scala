@@ -47,4 +47,8 @@ object TimerApp extends App {
   ta1 ! "hey, I'm just testing that I shall be consumed with no delay..."
 
   println("I'm done, but timeouts are pending...")
+
+  Thread.sleep(5000)
+
+  actorSystem.terminate
 }
