@@ -6,6 +6,9 @@ import akka.event.Logging
 object SessionActor {
   case class StartSession(pass: String)
   case object EndSession
+
+  def props(password:String, ref:ActorRef):Props =
+    Props(new SessionActor(password,ref))
 }
 
 class SessionActor
@@ -40,9 +43,9 @@ class SessionActor
 object SessionApp extends App {
   val actorSystem = ActorSystem("SessionActorSystem")
 
-  val ac1 = actorSystem.actorOf(Props(new AccountActor(100)), name="account1")
-  val ac2 = actorSystem.actorOf(Props(new AccountActor(100)), name="account2")
-  val secAc = actorSystem.actorOf(Props(new SessionActor("1234", ac2)),
+  val ac1 = actorSystem.actorOf(AccountActor.props(100), name="account1")
+  val ac2 = actorSystem.actorOf(AccountActor.props(100), name="account2")
+  val secAc = actorSystem.actorOf(SessionActor.props("1234", ac2),
     name="secured_account2")
 
   //no go

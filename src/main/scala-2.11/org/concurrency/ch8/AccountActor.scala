@@ -6,10 +6,11 @@ import akka.event.Logging
 object AccountActor {
 
   case class Send(amount: Int, account: ActorRef)
-
   case class Rcv(amount: Int)
-
   case object Amount
+
+  def props(amount:Int):Props =
+    Props(new AccountActor(amount))
 
 }
 
@@ -42,8 +43,8 @@ class AccountActor(
 object AccountsApp extends App {
   lazy val actorSystem = ActorSystem("Bank")
 
-  val ac1 = actorSystem.actorOf(Props(new AccountActor(100)), name = "ac1")
-  val ac2 = actorSystem.actorOf(Props(new AccountActor(100)), name = "ac2")
+  val ac1 = actorSystem.actorOf(AccountActor.props(100), name = "ac1")
+  val ac2 = actorSystem.actorOf(AccountActor.props(100), name = "ac2")
 
   ac1 ! AccountActor.Send(10, ac2)
 
